@@ -45,6 +45,7 @@ const addTrack = async (record) => {
     geoJsonFileUrl,
     staticImageUrl,
     overviewImageUrl,
+    previewImageUrl,
   } = record;
   const query = await graphcmsQuery.getAssets('fileName_starts_with');
   const queryVariables = {
@@ -74,6 +75,7 @@ const addTrack = async (record) => {
     geoJsonFileUrl,
     staticImageUrl,
     overviewImageUrl,
+    previewImageUrl,
     foreignKey,
   };
   return graphcms.request(mutation, mutationVariables);

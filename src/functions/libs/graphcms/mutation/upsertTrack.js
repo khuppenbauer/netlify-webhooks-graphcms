@@ -31,6 +31,7 @@ module.exports = async () => {
       $geoJsonFileUrl: String,
       $staticImageUrl: String,
       $overviewImageUrl: String,
+      $previewImageUrl: String,
     ) {
       upsertTrack(
         where: {
@@ -66,6 +67,7 @@ module.exports = async () => {
             geoJsonFileUrl: $geoJsonFileUrl,
             staticImageUrl: $staticImageUrl,
             overviewImageUrl: $overviewImageUrl,
+            previewImageUrl: $previewImageUrl,
           }
           update: {
             name: $name,
@@ -96,6 +98,7 @@ module.exports = async () => {
             geoJsonFileUrl: $geoJsonFileUrl,
             staticImageUrl: $staticImageUrl,
             overviewImageUrl: $overviewImageUrl,
+            previewImageUrl: $previewImageUrl,
           }
         }
       ) {
@@ -139,6 +142,7 @@ module.exports = async () => {
         geoJsonFileUrl
         staticImageUrl
         overviewImageUrl
+        previewImageUrl
       }
     }
   `;
