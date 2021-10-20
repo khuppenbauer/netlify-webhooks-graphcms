@@ -244,12 +244,7 @@ module.exports = async (data) => {
       } else if (folder === '/convert/gpx') {
         property = 'gpxFileSmall';
       }
-      if (cdn) {
-        mutation = await graphcmsMutation.updateTrack(`${property}Url`);
-        mutationVariables = {
-          value: fileUrl,
-        };
-      } else {
+      if (!cdn) {
         mutation = await graphcmsMutation.upsertTrackConnectAsset(property);
         mutationVariables = {
           id: assetId,
