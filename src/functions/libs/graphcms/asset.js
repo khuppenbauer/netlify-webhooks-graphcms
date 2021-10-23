@@ -233,9 +233,7 @@ module.exports = async (data) => {
       }
     } else {
       let property;
-      if (folder === '/preview') {
-        property = 'staticImage';
-      } else if (folder === '/tracks') {
+      if (folder === '/tracks') {
         if (extension === 'gpx') {
           property = 'gpxFile';
         } else if (extension === 'json') {

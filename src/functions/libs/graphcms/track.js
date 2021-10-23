@@ -43,7 +43,6 @@ const addTrack = async (record) => {
     gpxFileUrl,
     gpxFileSmallUrl,
     geoJsonFileUrl,
-    staticImageUrl,
     overviewImageUrl,
     previewImageUrl,
   } = record;
@@ -73,7 +72,6 @@ const addTrack = async (record) => {
     gpxFileUrl,
     gpxFileSmallUrl,
     geoJsonFileUrl,
-    staticImageUrl,
     overviewImageUrl,
     previewImageUrl,
     foreignKey,

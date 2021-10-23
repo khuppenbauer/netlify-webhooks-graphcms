@@ -19,9 +19,7 @@ const handler = async (event) => {
       const { foreignKey } = source;
       const filter = { name: foreignKey };
       let update;
-      if (folder === '/preview') {
-        update = { staticImageUrl: url };
-      } else if (folder === '/tracks') {
+      if (folder === '/tracks') {
         if (extension === 'gpx') {
           update = { gpxFileUrl: url };
         } else if (extension === 'json') {
