@@ -15,6 +15,11 @@ module.exports = async (coords) => {
   const {
     minLat, minLng, maxLat, maxLng,
   } = bounds;
+  const distance = geolib.getPreciseDistance(
+    { latitude: minLat, longitude: minLng},
+    { latitude: maxLat, longitude: maxLng }
+  );
+  const zoom = distance > 200000 ? 5 : 6;
   const { latitude, longitude } = center;
   const geoJsonString = {
     type: 'Feature',
@@ -40,7 +45,7 @@ module.exports = async (coords) => {
     mapboxStyle,
     'static',
     `geojson(${encodeURIComponent(JSON.stringify(geoJsonString))})`,
-    `${longitude},${latitude},6`,
+    `${longitude},${latitude},${zoom}`,
     imageSize,
   ];
   return `${mapboxBaseUrl}${pathParams.join('/')}?access_token=${mapboxToken}`;
