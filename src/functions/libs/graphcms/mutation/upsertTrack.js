@@ -29,7 +29,6 @@ module.exports = async () => {
       $gpxFileUrl: String,
       $gpxFileSmallUrl: String,
       $geoJsonFileUrl: String,
-      $staticImageUrl: String,
       $overviewImageUrl: String,
       $previewImageUrl: String,
     ) {
@@ -65,7 +64,6 @@ module.exports = async () => {
             gpxFileUrl: $gpxFileUrl,
             gpxFileSmallUrl: $gpxFileSmallUrl,
             geoJsonFileUrl: $geoJsonFileUrl,
-            staticImageUrl: $staticImageUrl,
             overviewImageUrl: $overviewImageUrl,
             previewImageUrl: $previewImageUrl,
           }
@@ -96,7 +94,6 @@ module.exports = async () => {
             gpxFileUrl: $gpxFileUrl,
             gpxFileSmallUrl: $gpxFileSmallUrl,
             geoJsonFileUrl: $geoJsonFileUrl,
-            staticImageUrl: $staticImageUrl,
             overviewImageUrl: $overviewImageUrl,
             previewImageUrl: $previewImageUrl,
           }
@@ -140,7 +137,6 @@ module.exports = async () => {
         gpxFileUrl
         gpxFileSmallUrl
         geoJsonFileUrl
-        staticImageUrl
         overviewImageUrl
         previewImageUrl
       }
