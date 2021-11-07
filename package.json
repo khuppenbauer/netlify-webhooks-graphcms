@@ -26,6 +26,7 @@
     "mpath": "^0.8.4",
     "mquery": "^3.2.3",
     "netlify-lambda": "^2.0.1",
+    "randomcolor": "^0.6.2",
     "set-value": "^4.0.1"
   },
   "devDependencies": {

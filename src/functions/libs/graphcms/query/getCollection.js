@@ -37,6 +37,10 @@ module.exports = async () => {
             latitude
             longitude
           }
+          collectionType {
+            name
+            slug
+          }
         }
       }
     }

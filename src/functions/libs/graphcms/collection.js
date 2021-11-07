@@ -2,6 +2,7 @@ const dotenv = require('dotenv').config();
 const axios = require('axios');
 const { GraphQLClient } = require('graphql-request');
 const geolib = require('geolib');
+const randomColor = require('randomcolor');
 const mapboxLib = require('../mapbox');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
@@ -11,6 +12,19 @@ const token = process.env.GRAPHCMS_API_TOKEN;
 const stroke = '#ff3300';
 const strokeWidth = 2;
 const fillOpacity = 0;
+
+const colors = [
+  '#9e0142',
+  '#d53e4f',
+  '#f46d43',
+  '#fdae61',
+  '#fee08b',
+  '#e6f598',
+  '#abdda4',
+  '#66c2a5',
+  '#3288bd',
+  '#5e4fa2',
+]; 
 
 const graphcms = new GraphQLClient(
   url,
@@ -150,7 +164,7 @@ const addGeoDataToCollection = async (id, features, coords) => {
 const parseTracks = async (tracks) => {
   const features = [];
   const coords = [];
-  tracks.reduce((acc, track) => {
+  tracks.reduce((acc, track, index) => {
     const {
       id, geoJson: json, minCoords, maxCoords, color, name,
       distance, totalElevationGain, totalElevationLoss,
@@ -164,6 +178,7 @@ const parseTracks = async (tracks) => {
       totalElevationGain,
       totalElevationLoss,
     };
+    featureItem.properties.color = colors[index] ? colors[index]: randomColor();
     if (color) {
       const { hex } = color;
       featureItem.properties.color = hex;
@@ -185,7 +200,7 @@ const parseSubcollections = async (subCollections) => {
   const coords = [];
   subCollections.reduce((acc, subCollection) => {
     const {
-      name, minCoords, maxCoords,
+      name, minCoords, maxCoords, collectionType,
     } = subCollection;
     const { latitude: minLat, longitude: minLng } = minCoords;
     const { latitude: maxLat, longitude: maxLng } = maxCoords;
@@ -193,6 +208,8 @@ const parseSubcollections = async (subCollections) => {
       type: 'Feature',
       properties: {
         name,
+        type: collectionType.slug,
+        color: stroke,
         stroke,
         'stroke-width': strokeWidth,
         'fill-opacity': fillOpacity,
