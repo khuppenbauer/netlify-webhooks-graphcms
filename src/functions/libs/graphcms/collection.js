@@ -8,6 +8,9 @@ const graphcmsQuery = require('./query');
 
 const url = process.env.GRAPHCMS_API_URL;
 const token = process.env.GRAPHCMS_API_TOKEN;
+const stroke = '#ff3300';
+const strokeWidth = 2;
+const fillOpacity = 0;
 
 const graphcms = new GraphQLClient(
   url,
@@ -103,12 +106,16 @@ const publishCollection = async (id) => {
   return graphcms.request(mutation, mutationVariables);
 };
 
-const addAssetToCollection = async (id, name, coords, staticImage) => {
+const addAssetToCollection = async (id, name, coords, staticImage, features) => {
   if (staticImage) {
     const { id: existingStaticImage } = staticImage;
     await deleteAsset(existingStaticImage);
   }
-  const imageUrl = await mapboxLib.polygon(coords);
+  const geoJson = {
+    type: 'FeatureCollection',
+    features,
+  };
+  const imageUrl = await mapboxLib.geoJson(coords, geoJson);
   const asset = await uploadAsset(imageUrl);
   const { id: assetId } = asset;
   await updateAsset(assetId, name);
@@ -134,6 +141,10 @@ const addGeoDataToCollection = async (id, features, coords) => {
     longitude: maxLng,
   };
   await updateCollection(id, geoJson, minCoords, maxCoords);
+  return {
+    minCoords,
+    maxCoords
+  }
 };
 
 const parseTracks = async (tracks) => {
@@ -168,6 +179,47 @@ const parseTracks = async (tracks) => {
   };
 };
 
+const parseSubcollections = async (subCollections) => {
+  const features = [];
+  const coords = [];
+  subCollections.reduce((acc, subCollection) => {
+    const {
+      name, minCoords, maxCoords,
+    } = subCollection;
+    const { latitude: minLat, longitude: minLng } = minCoords;
+    const { latitude: maxLat, longitude: maxLng } = maxCoords;
+    const feature = {
+      type: 'Feature',
+      properties: {
+        name,
+        stroke,
+        'stroke-width': strokeWidth,
+        'fill-opacity': fillOpacity,
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat],
+          ],
+        ],
+      },
+    };
+    features.push(feature);
+    coords.push(minCoords);
+    coords.push(maxCoords);
+    return acc;
+  }, []);
+  return {
+    features,
+    coords,
+  };
+};
+
 module.exports = async (data) => {
   const { data: item } = data;
   const { id, publishedBy } = item;
@@ -182,11 +234,39 @@ module.exports = async (data) => {
   }
 
   const collection = await getCollection(id);
-  const { tracks, name, staticImage } = collection;
-  const { features, coords } = await parseTracks(tracks);
-
-  await addGeoDataToCollection(id, features, coords);
-  await addAssetToCollection(id, name, coords, staticImage);
+  const { tracks, subCollections, name, staticImage } = collection;
+  if (tracks.length > 0) {
+    const { features, coords } = await parseTracks(tracks);
+    const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
+    const { latitude: minLat, longitude: minLng } = minCoords;
+    const { latitude: maxLat, longitude: maxLng } = maxCoords;
+    const feature = {
+      type: 'Feature',
+      properties: {
+        stroke,
+        'stroke-width': strokeWidth,
+        'fill-opacity': fillOpacity,
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat],
+          ],
+        ],
+      },
+    };
+    await addAssetToCollection(id, name, coords, staticImage, [feature]);
+  }
+  if (subCollections.length > 0) {
+    const { features, coords } = await parseSubcollections(subCollections);
+    await addGeoDataToCollection(id, features, coords);
+    await addAssetToCollection(id, name, coords, staticImage, features);
+  }
   await publishCollection(id);
   return data;
 };

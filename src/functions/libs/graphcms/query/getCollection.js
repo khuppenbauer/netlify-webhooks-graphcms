@@ -26,6 +26,17 @@ module.exports = async () => {
         staticImage {
           id
         }
+        subCollections {
+          name
+          maxCoords {
+            latitude
+            longitude
+          }
+          minCoords {
+            latitude
+            longitude
+          }
+        }
       }
     }
   `;
