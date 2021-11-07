@@ -7,6 +7,7 @@ module.exports = async () => {
         name,
         tracks {
           id
+          name
           geoJson  
           maxCoords {
             latitude

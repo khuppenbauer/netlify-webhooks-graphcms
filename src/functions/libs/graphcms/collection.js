@@ -152,13 +152,14 @@ const parseTracks = async (tracks) => {
   const coords = [];
   tracks.reduce((acc, track) => {
     const {
-      id, geoJson: json, minCoords, maxCoords, color,
+      id, geoJson: json, minCoords, maxCoords, color, name,
       distance, totalElevationGain, totalElevationLoss,
     } = track;
     const featureItem = json.features[0];
     featureItem.properties = {
       ...featureItem.properties,
       id,
+      name,
       distance,
       totalElevationGain,
       totalElevationLoss,
