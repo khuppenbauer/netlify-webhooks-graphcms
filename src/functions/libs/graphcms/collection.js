@@ -169,7 +169,12 @@ const parseTracks = async (tracks) => {
       id, geoJson: json, minCoords, maxCoords, color, name,
       distance, totalElevationGain, totalElevationLoss,
     } = track;
-    const featureItem = json.features[0];
+    const featureItem = json.features.reduce((prev, current, index) => {
+      current.index = index;
+      const prevDistance = prev ? (prev.properties.distance) : 0;
+      const currentDistance = current ? (current.properties.distance) : 0;
+      return (prevDistance > currentDistance) ? prev : current;
+    });
     featureItem.properties = {
       ...featureItem.properties,
       id,
