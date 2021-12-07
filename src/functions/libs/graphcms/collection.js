@@ -6,6 +6,8 @@ const randomColor = require('randomcolor');
 const mapboxLib = require('../mapbox');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
+const Cache = require('../../models/cache');
+const Feature = require('../../models/feature');
 
 const url = process.env.GRAPHCMS_API_URL;
 const token = process.env.GRAPHCMS_API_TOKEN;
@@ -243,6 +245,75 @@ const parseSubcollections = async (subCollections) => {
   };
 };
 
+const setCache = async(name, minLat, minLng, maxLat, maxLng) => {
+  const types = ['image', 'pass', 'residence', 'map', 'book', 'track', 'segment'];
+  await types.reduce(async (lastPromise, type) => {
+    const accum = await lastPromise;
+    const featureFilter = {
+      type,
+      'geometry': {
+        $geoIntersects: {
+          $geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [minLng, minLat],
+                [maxLng, minLat],
+                [maxLng, maxLat],
+                [minLng, maxLat],
+                [minLng, minLat],
+              ],
+            ],
+          }
+        }
+      }
+    };
+    const items = await Feature.find(featureFilter);
+    if (items.length > 0) {
+      const typeFeatures = items.map((item) => {
+        const { geoJson } = item;
+        const { features } = geoJson;
+        const featureItem = features.reduce((prev, current, index) => {
+          current.index = index;
+          const prevDistance = prev ? (prev.properties.distance) : 0;
+          const currentDistance = current ? (current.properties.distance) : 0;
+          return (prevDistance > currentDistance) ? prev : current;
+        });
+        delete featureItem.properties.coordTimes;
+        return featureItem;
+      });
+      const filter = {
+        name,
+        type: 'Collection',
+        feature: type,
+      };
+      const cacheItem = {
+        ...filter,
+        geoJson: {
+          type: 'FeatureCollection',
+          features: typeFeatures,
+        },
+        minCoords: {
+          lat: minLat,
+          lon: minLng,
+        },
+        maxCoords: {
+          lat: maxLat,
+          lon: maxLng,
+        },
+      };
+
+      await Cache.findOneAndUpdate(
+        filter, 
+        cacheItem, 
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }    
+    return [...accum];
+  }, Promise.resolve([]));
+  
+} 
+
 module.exports = async (data) => {
   const { data: item } = data;
   const { id, publishedBy } = item;
@@ -263,6 +334,7 @@ module.exports = async (data) => {
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;
     const { latitude: maxLat, longitude: maxLng } = maxCoords;
+    await setCache(name, minLat, minLng, maxLat, maxLng);
     const feature = {
       type: 'Feature',
       properties: {
