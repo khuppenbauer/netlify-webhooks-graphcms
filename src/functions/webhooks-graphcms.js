@@ -4,7 +4,15 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'POST') {
     const body = JSON.parse(event.body);
     const { data } = body;
-    const { name, __typename: type, stage } = data;
+    const { name, __typename: type, stage, id, publishedBy } = data;
+    const messageBody = {
+      ...body,
+      data: {
+        id,
+        publishedBy,
+      },
+    };
+    event.body = JSON.stringify(messageBody);
     return messages.create(event, { foreignKey: name, app: 'graphcms', event: `${type}_${stage}` });
   }
   return {
