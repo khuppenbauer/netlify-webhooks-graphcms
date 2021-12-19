@@ -4,6 +4,7 @@ const { GraphQLClient } = require('graphql-request');
 const geolib = require('geolib');
 const randomColor = require('randomcolor');
 const mapboxLib = require('../mapbox');
+const algolia = require('../algolia');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
 const Cache = require('../../models/cache');
@@ -245,7 +246,7 @@ const parseSubcollections = async (subCollections) => {
   };
 };
 
-const setCache = async(name, minLat, minLng, maxLat, maxLng) => {
+const setCache = async(id, name, minLat, minLng, maxLat, maxLng) => {
   const types = ['image', 'pass', 'residence', 'map', 'book', 'track', 'segment'];
   await types.reduce(async (lastPromise, type) => {
     const accum = await lastPromise;
@@ -308,6 +309,9 @@ const setCache = async(name, minLat, minLng, maxLat, maxLng) => {
         cacheItem, 
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
+      if (type === 'map') {
+        await algolia.cache({id, ...cacheItem});
+      }
     }    
     return [...accum];
   }, Promise.resolve([]));
@@ -334,7 +338,7 @@ module.exports = async (data) => {
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;
     const { latitude: maxLat, longitude: maxLng } = maxCoords;
-    await setCache(name, minLat, minLng, maxLat, maxLng);
+    await setCache(id, name, minLat, minLng, maxLat, maxLng);
     const feature = {
       type: 'Feature',
       properties: {
