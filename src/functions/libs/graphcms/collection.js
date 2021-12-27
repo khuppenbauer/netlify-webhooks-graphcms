@@ -104,6 +104,15 @@ const getCollection = async (id) => {
   return collection;
 };
 
+const getTrack = async (id) => {
+  const query = await graphcmsQuery.getTrack();
+  const queryVariables = {
+    id,
+  };
+  const { track } = await graphcms.request(query, queryVariables);
+  return track;
+};
+
 const updateCollection = async (id, geoJson, minCoords, maxCoords) => {
   const mutation = await graphcmsMutation.updateCollection();
   const mutationVariables = {
@@ -163,6 +172,16 @@ const addGeoDataToCollection = async (id, features, coords) => {
     maxCoords
   }
 };
+
+const indexTracks = async (tracks) => {
+  await tracks.reduce(async (lastPromise, trackItem) => {
+    const accum = await lastPromise;
+    const { id } = trackItem;
+    const track = await getTrack(id);
+    algolia.track(track);
+    return [...accum];
+  }, Promise.resolve([]));
+}
 
 const parseTracks = async (tracks) => {
   const features = [];
@@ -334,6 +353,7 @@ module.exports = async (data) => {
   const collection = await getCollection(id);
   const { tracks, subCollections, name, staticImage } = collection;
   if (tracks.length > 0) {
+    await indexTracks(tracks);
     const { features, coords } = await parseTracks(tracks);
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;

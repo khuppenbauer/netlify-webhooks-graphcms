@@ -1,6 +1,7 @@
 const dotenv = require('dotenv').config();
 const { GraphQLClient } = require('graphql-request');
 const mongoose = require('mongoose');
+const algolia = require('../algolia');
 const db = require('../../database/mongodb');
 const Track = require('../../models/track');
 const graphcmsMutation = require('./mutation');
@@ -87,6 +88,40 @@ const publishTrack = async (track) => {
   return graphcms.request(mutation, mutationVariables);
 };
 
+const getUser = async (id) => {
+  const query = await graphcmsQuery.getUser();
+  const queryVariables = {
+    id,
+  };
+  const { user } = await graphcms.request(query, queryVariables);
+  return user;
+};
+
+const getTrack = async (id) => {
+  const query = await graphcmsQuery.getTrack();
+  const queryVariables = {
+    id,
+  };
+  const { track } = await graphcms.request(query, queryVariables);
+  return track;
+};
+
+const indexTrack = async (data) => {
+  const { data: item } = data;
+  const { id, publishedBy } = item;
+  if (!publishedBy) {
+    return null;
+  }
+  const { id: userId } = publishedBy;
+  const user = await getUser(userId);
+  const { kind } = user;
+  if (kind !== 'MEMBER') {
+    return null;
+  }
+  const track = await getTrack(id);
+  algolia.track(track);
+}
+
 module.exports = async (data, action) => {
   if (action === 'add') {
     const { track } = data;
@@ -96,6 +131,9 @@ module.exports = async (data, action) => {
   if (action === 'publish') {
     const { track } = data;
     return publishTrack(track);
+  }
+  if (action === 'index') {
+    return indexTrack(data);
   }
   return null;
 };
