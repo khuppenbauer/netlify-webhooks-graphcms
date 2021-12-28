@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const algolia = require('../algolia');
 const db = require('../../database/mongodb');
 const Track = require('../../models/track');
+const Feature = require('../../models/feature');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
 
@@ -106,7 +107,7 @@ const getTrack = async (id) => {
   return track;
 };
 
-const indexTrack = async (data) => {
+const updateTrack = async (data) => {
   const { data: item } = data;
   const { id, publishedBy } = item;
   if (!publishedBy) {
@@ -119,7 +120,21 @@ const indexTrack = async (data) => {
     return null;
   }
   const track = await getTrack(id);
+  const {
+    name,
+    foreignKey,
+  } = track;
+  await Track.findByIdAndUpdate(foreignKey, track);
   algolia.track(track);
+  const feature = {
+    name
+  };
+  const featureFilter = {
+    type: 'track',
+    foreignKey,
+  };
+  const { _id } = await Feature.findOneAndUpdate(featureFilter, feature);
+  algolia.feature(_id);
 }
 
 module.exports = async (data, action) => {
@@ -132,8 +147,8 @@ module.exports = async (data, action) => {
     const { track } = data;
     return publishTrack(track);
   }
-  if (action === 'index') {
-    return indexTrack(data);
+  if (action === 'update') {
+    return updateTrack(data);
   }
   return null;
 };

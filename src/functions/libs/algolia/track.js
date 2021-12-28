@@ -80,22 +80,26 @@ module.exports = async (data) => {
   let collectionCategories = {};
   const collectionLvl0 = [];
   const collectionLvl1 = [];
+  const collectionLvl2 = [];
   if (collection.length > 0) {
     collection.forEach((collectionItem) => {
       const { name, collectionType, subCollection } = collectionItem;
       collectionLvl0.push(collectionType.name);
       collectionLvl1.push(`${collectionType.name} > ${name}`);
+      collectionLvl2.push(`${collectionType.name} > ${name}`);
       if (subCollection.length > 0) {
         subCollection.forEach((subcollectionItem) => {
           const { name: subCollectionName, collectionType: subCollectionType } = subcollectionItem;
             collectionLvl0.push(subCollectionType.name);
             collectionLvl1.push(`${subCollectionType.name} > ${subCollectionName}`);
+            collectionLvl2.push(`${subCollectionType.name} > ${subCollectionName} > ${name}`);
         });
       }
     });
     collectionCategories = {
       'collections.lvl0': collectionLvl0,
       'collections.lvl1': collectionLvl1,
+      'collections.lvl2': collectionLvl2,
     };
   }
   await index
@@ -104,6 +108,7 @@ module.exports = async (data) => {
         'searchable(collections)',
         'searchable(collections.lvl0)',
         'searchable(collections.lvl1)',
+        'searchable(collections.lvl2)',
         'searchable(date)',
         'searchable(distance)',
         'searchable(totalElevationGain)',
