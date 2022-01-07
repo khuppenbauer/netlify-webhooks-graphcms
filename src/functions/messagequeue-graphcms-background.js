@@ -1,7 +1,9 @@
 const sentry = require('./libs/sentry');
 const messages = require('./methods/messages');
 const graphcms = require('./libs/graphcms');
+const algolia = require('./libs/algolia');
 const Track = require('./models/track');
+const Feature = require('./models/feature');
 
 const handler = async (event) => {
   if (event.httpMethod === 'POST') {
@@ -14,10 +16,20 @@ const handler = async (event) => {
       res = await graphcms.track(data, action);
     } else if (type === 'file') {
       res = await graphcms.asset(data);
-      const { folder, extension, source, url } = res;
+      const { folder, extension, source, url, name } = res;
       const dir = folder.replace('/', '');
       const { foreignKey } = source;
       const filter = { name: foreignKey };
+      if (folder === '/images') {
+        const feature = await Feature.findOne({ name });
+        const { _id, meta: metaData } = feature;
+        const meta = {
+          ...metaData,
+          url,
+        };
+        await Feature.findByIdAndUpdate(_id, { meta } );
+        algolia.feature(_id);
+      }
       let update;
       if (folder === '/tracks') {
         if (extension === 'gpx') {
