@@ -22,13 +22,15 @@ const handler = async (event) => {
       const filter = { name: foreignKey };
       if (folder === '/images') {
         const feature = await Feature.findOne({ name });
-        const { _id, meta: metaData } = feature;
-        const meta = {
-          ...metaData,
-          url,
-        };
-        await Feature.findByIdAndUpdate(_id, { meta } );
-        algolia.feature(_id);
+        if (feature) {
+          const { _id, meta: metaData } = feature;
+          const meta = {
+            ...metaData,
+            url,
+          };
+          await Feature.findByIdAndUpdate(_id, { meta } );
+          algolia.feature(_id);
+        }
       }
       let update;
       if (folder === '/tracks') {
