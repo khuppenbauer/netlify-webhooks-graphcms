@@ -196,7 +196,7 @@ const updateTrail = async (sha1, coords) => {
   }
 };
 
-module.exports = async (data) => {
+module.exports = async (event, data) => {
   const { _id: file } = data;
   const record = await File.findById(file);
   const {

@@ -4,10 +4,9 @@ const { GraphQLClient } = require('graphql-request');
 const geolib = require('geolib');
 const randomColor = require('randomcolor');
 const mapboxLib = require('../mapbox');
-const algolia = require('../algolia');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
-const Cache = require('../../models/cache');
+const messages = require('../../methods/messages');
 const Feature = require('../../models/feature');
 
 const url = process.env.GRAPHCMS_API_URL;
@@ -173,12 +172,27 @@ const addGeoDataToCollection = async (id, features, coords) => {
   }
 };
 
-const indexTracks = async (tracks) => {
+const createMessages = async (event, tracks) => {
   await tracks.reduce(async (lastPromise, trackItem) => {
     const accum = await lastPromise;
     const { id } = trackItem;
     const track = await getTrack(id);
-    algolia.track(track);
+    const { foreignKey } = track;
+    const trackObject = {
+      ...track,
+      _id: foreignKey,
+    };
+    await messages.create(
+      {
+        ...event,
+        body: JSON.stringify(trackObject),
+      },
+      {
+        foreignKey,
+        app: 'graphcms',
+        event: 'update_track',
+      }
+    ); 
     return [...accum];
   }, Promise.resolve([]));
 }
@@ -265,79 +279,7 @@ const parseSubcollections = async (subCollections) => {
   };
 };
 
-const setCache = async(id, name, minLat, minLng, maxLat, maxLng) => {
-  const types = ['image', 'pass', 'residence', 'map', 'book', 'track', 'segment'];
-  await types.reduce(async (lastPromise, type) => {
-    const accum = await lastPromise;
-    const featureFilter = {
-      type,
-      'geometry': {
-        $geoIntersects: {
-          $geometry: {
-            type: 'Polygon',
-            coordinates: [
-              [
-                [minLng, minLat],
-                [maxLng, minLat],
-                [maxLng, maxLat],
-                [minLng, maxLat],
-                [minLng, minLat],
-              ],
-            ],
-          }
-        }
-      }
-    };
-    const items = await Feature.find(featureFilter);
-    if (items.length > 0) {
-      const typeFeatures = items.map((item) => {
-        const { geoJson } = item;
-        const { features } = geoJson;
-        const featureItem = features.reduce((prev, current, index) => {
-          current.index = index;
-          const prevDistance = prev ? (prev.properties.distance) : 0;
-          const currentDistance = current ? (current.properties.distance) : 0;
-          return (prevDistance > currentDistance) ? prev : current;
-        });
-        delete featureItem.properties.coordTimes;
-        return featureItem;
-      });
-      const filter = {
-        name,
-        type: 'Collection',
-        feature: type,
-      };
-      const cacheItem = {
-        ...filter,
-        geoJson: {
-          type: 'FeatureCollection',
-          features: typeFeatures,
-        },
-        minCoords: {
-          lat: minLat,
-          lon: minLng,
-        },
-        maxCoords: {
-          lat: maxLat,
-          lon: maxLng,
-        },
-      };
-
-      await Cache.findOneAndUpdate(
-        filter, 
-        cacheItem, 
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
-      if (type === 'map') {
-        await algolia.cache({id, ...cacheItem});
-      }
-    }    
-    return [...accum];
-  }, Promise.resolve([]));
-  
-} 
-
-module.exports = async (data) => {
+module.exports = async (event, data) => {
   const { data: item } = data;
   const { id, publishedBy } = item;
   if (!publishedBy) {
@@ -353,12 +295,11 @@ module.exports = async (data) => {
   const collection = await getCollection(id);
   const { tracks, subCollections, name, staticImage } = collection;
   if (tracks.length > 0) {
-    await indexTracks(tracks);
+    await createMessages(event, tracks);
     const { features, coords } = await parseTracks(tracks);
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;
     const { latitude: maxLat, longitude: maxLng } = maxCoords;
-    await setCache(id, name, minLat, minLng, maxLat, maxLng);
     const feature = {
       type: 'Feature',
       properties: {

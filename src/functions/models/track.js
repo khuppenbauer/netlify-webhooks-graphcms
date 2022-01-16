@@ -121,6 +121,15 @@ const schema = new mongoose.Schema({
   endTime: {
     type: Date,
   },
+  difficulty: {
+    type: Number,
+  },
+  experience: {
+    type: Number,
+  },
+  fitness: {
+    type: Number,
+  },
 }, schemaOptions);
 const Track = mongoose.model('track', schema);
 

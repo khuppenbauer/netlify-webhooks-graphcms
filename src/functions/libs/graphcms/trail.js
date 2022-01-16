@@ -53,7 +53,7 @@ const addPhotos = async (foreignKey, geoJson) => {
   }
 };
 
-module.exports = async (data) => {
+module.exports = async (event, data) => {
   const { feature } = data;
   const record = await Feature.findById(feature);
   const {

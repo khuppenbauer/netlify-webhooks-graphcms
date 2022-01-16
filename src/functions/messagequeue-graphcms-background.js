@@ -1,7 +1,6 @@
 const sentry = require('./libs/sentry');
 const messages = require('./methods/messages');
 const graphcms = require('./libs/graphcms');
-const algolia = require('./libs/algolia');
 const Track = require('./models/track');
 const Feature = require('./models/feature');
 
@@ -13,9 +12,9 @@ const handler = async (event) => {
     let res;
     if (type === 'track') {
       message = `${action}_track`;
-      res = await graphcms.track(data, action);
+      res = await graphcms.track(event, data, action);
     } else if (type === 'file') {
-      res = await graphcms.asset(data);
+      res = await graphcms.asset(event, data);
       const { folder, extension, source, url, name } = res;
       const dir = folder.replace('/', '');
       const { foreignKey } = source;
@@ -28,8 +27,12 @@ const handler = async (event) => {
             ...metaData,
             url,
           };
-          await Feature.findByIdAndUpdate(_id, { meta } );
-          algolia.feature(_id);
+          const featureObject = await Feature.findByIdAndUpdate(_id, { meta } );
+          const messageObject = {
+            ...event,
+            body: JSON.stringify(featureObject),
+          };
+          await messages.create(messageObject, { foreignKey: data.path_display, app: 'graphcms', event: 'update_image_image_feature' });
         }
       }
       let update;
@@ -46,10 +49,10 @@ const handler = async (event) => {
       message = `upload_${dir}_${extension}_file`;
     } else if (type === 'segment') {
       message = 'add_segment';
-      res = await graphcms.trail(data);
+      res = await graphcms.trail(event, data);
     } else if (type === 'collection') {
       message = 'update_collection';
-      res = await graphcms.collection(data);
+      res = await graphcms.collection(event, data);
     }
     if (res) {
       const messageObject = {

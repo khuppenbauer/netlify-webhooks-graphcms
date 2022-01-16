@@ -1,8 +1,8 @@
 const dotenv = require('dotenv').config();
 const { GraphQLClient } = require('graphql-request');
 const mongoose = require('mongoose');
-const algolia = require('../algolia');
 const db = require('../../database/mongodb');
+const messages = require('../../methods/messages');
 const Track = require('../../models/track');
 const Feature = require('../../models/feature');
 const graphcmsMutation = require('./mutation');
@@ -107,7 +107,7 @@ const getTrack = async (id) => {
   return track;
 };
 
-const updateTrack = async (data) => {
+const updateTrack = async (event, data) => {
   const { data: item } = data;
   const { id, publishedBy } = item;
   if (!publishedBy) {
@@ -125,7 +125,22 @@ const updateTrack = async (data) => {
     foreignKey,
   } = track;
   await Track.findByIdAndUpdate(foreignKey, track);
-  algolia.track(track);
+  const trackObject = {
+    ...track,
+    _id: foreignKey,
+  }
+  await messages.create(
+    {
+      ...event,
+      body: JSON.stringify(trackObject),
+    },
+    {
+      foreignKey,
+      app: 'graphcms',
+      event: 'update_track',
+    }
+  );
+
   const feature = {
     name
   };
@@ -133,11 +148,21 @@ const updateTrack = async (data) => {
     type: 'track',
     foreignKey,
   };
-  const { _id } = await Feature.findOneAndUpdate(featureFilter, feature);
-  algolia.feature(_id);
+  const featureObject = await Feature.findOneAndUpdate(featureFilter, feature);
+  await messages.create(
+    {
+      ...event,
+      body: JSON.stringify(featureObject),
+    },
+    {
+      foreignKey: featureObject._id,
+      app: 'graphcms',
+      event: 'update_gpx_track_feature',
+    }
+  );
 }
 
-module.exports = async (data, action) => {
+module.exports = async (event, data, action) => {
   if (action === 'add') {
     const { track } = data;
     const record = await Track.findById(track);
@@ -148,7 +173,7 @@ module.exports = async (data, action) => {
     return publishTrack(track);
   }
   if (action === 'update') {
-    return updateTrack(data);
+    return updateTrack(event, data);
   }
   return null;
 };
