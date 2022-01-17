@@ -130,6 +130,27 @@ const schema = new mongoose.Schema({
   fitness: {
     type: Number,
   },
+  collection: {
+    type: Object,
+  },
+  downloadGpx: {
+    type: Boolean,
+  },
+  private: {
+    type: Boolean,
+  },
+  slug: {
+    type: String,
+  },
+  subtitle: {
+    type: String,
+  },
+  description: {
+    type: String,
+  },
+  abstract: {
+    type: String,
+  },
 }, schemaOptions);
 const Track = mongoose.model('track', schema);
 

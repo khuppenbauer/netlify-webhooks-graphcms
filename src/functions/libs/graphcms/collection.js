@@ -7,7 +7,7 @@ const mapboxLib = require('../mapbox');
 const graphcmsMutation = require('./mutation');
 const graphcmsQuery = require('./query');
 const messages = require('../../methods/messages');
-const Feature = require('../../models/feature');
+const Track = require('../../models/track');
 
 const url = process.env.GRAPHCMS_API_URL;
 const token = process.env.GRAPHCMS_API_TOKEN;
@@ -172,12 +172,13 @@ const addGeoDataToCollection = async (id, features, coords) => {
   }
 };
 
-const createMessages = async (event, tracks) => {
+const updateTracks = async (event, tracks) => {
   await tracks.reduce(async (lastPromise, trackItem) => {
     const accum = await lastPromise;
     const { id } = trackItem;
     const track = await getTrack(id);
     const { foreignKey } = track;
+    await Track.findByIdAndUpdate(foreignKey, track);
     const trackObject = {
       ...track,
       _id: foreignKey,
@@ -295,7 +296,7 @@ module.exports = async (event, data) => {
   const collection = await getCollection(id);
   const { tracks, subCollections, name, staticImage } = collection;
   if (tracks.length > 0) {
-    await createMessages(event, tracks);
+    await updateTracks(event, tracks);
     const { features, coords } = await parseTracks(tracks);
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;
