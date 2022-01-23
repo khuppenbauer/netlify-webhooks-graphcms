@@ -89,6 +89,25 @@ const publishTrack = async (track) => {
   return graphcms.request(mutation, mutationVariables);
 };
 
+const updateCollection = async (id, geoJson, minCoords, maxCoords) => {
+  const mutation = await graphcmsMutation.updateCollection();
+  const mutationVariables = {
+    id,
+    geoJson,
+    minCoords,
+    maxCoords,
+  };
+  return graphcms.request(mutation, mutationVariables);
+};
+
+const publishCollection = async (id) => {
+  const mutation = await graphcmsMutation.publishCollection();
+  const mutationVariables = {
+    id,
+  };
+  return graphcms.request(mutation, mutationVariables);
+};
+
 const getUser = async (id) => {
   const query = await graphcmsQuery.getUser();
   const queryVariables = {
@@ -123,16 +142,41 @@ const updateTrack = async (event, data) => {
   const {
     name,
     foreignKey,
+    collection,
   } = track;
-  await Track.findByIdAndUpdate(foreignKey, track);
-  const trackObject = {
-    ...track,
-    _id: foreignKey,
+  let trackObject = track;
+  if (collection.length > 0) {
+    delete track['collection'];
+    trackObject = {
+      ...track,
+      trackCollection: collection,
+    };
+    await collection.reduce(async (lastPromise, collectionItem) => {
+      const accum = await lastPromise;
+      const { id, geoJson, minCoords, maxCoords, tracks } = collectionItem;
+      const trackNames = [];
+      tracks.forEach((trackItem, index) => {
+        const { name: trackName } = trackItem;
+        trackNames.push(trackName);
+      })
+      const { features } = geoJson;
+      const geoJsonFeatures = features.map((geoJsonFeature, index) => {
+        geoJsonFeature.properties.name = trackNames[index];
+        return geoJsonFeature;
+      });
+      geoJson.features = geoJsonFeatures;
+      updateCollection(id, geoJson, minCoords, maxCoords);
+      publishCollection(id);
+      return [...accum];
+    }, Promise.resolve([]));
   }
+  await Track.findByIdAndUpdate(foreignKey, trackObject);
   await messages.create(
     {
       ...event,
-      body: JSON.stringify(trackObject),
+      body: JSON.stringify({
+        track: foreignKey,
+      }),
     },
     {
       foreignKey,
@@ -152,7 +196,9 @@ const updateTrack = async (event, data) => {
   await messages.create(
     {
       ...event,
-      body: JSON.stringify(featureObject),
+      body: JSON.stringify({
+        feature: featureObject._id
+      }),
     },
     {
       foreignKey: featureObject._id,

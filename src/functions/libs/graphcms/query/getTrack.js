@@ -5,7 +5,17 @@ module.exports = async () => {
     query gettrack($id: ID!) {
       track(where: { id: $id }) {
         collection {
+          id
           name
+          geoJson
+          maxCoords {
+            latitude
+            longitude
+          }
+          minCoords {
+            latitude
+            longitude
+          }
           subCollection {
             name
             collectionType {
@@ -13,6 +23,9 @@ module.exports = async () => {
             }
           }
           collectionType {
+            name
+          }
+          tracks {
             name
           }
         }

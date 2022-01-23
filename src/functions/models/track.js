@@ -130,7 +130,7 @@ const schema = new mongoose.Schema({
   fitness: {
     type: Number,
   },
-  collection: {
+  trackCollection: {
     type: Object,
   },
   downloadGpx: {
