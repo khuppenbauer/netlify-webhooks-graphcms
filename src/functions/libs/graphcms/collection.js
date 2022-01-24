@@ -11,6 +11,8 @@ const Track = require('../../models/track');
 
 const url = process.env.GRAPHCMS_API_URL;
 const token = process.env.GRAPHCMS_API_TOKEN;
+const gpsbabelBaseUrl = process.env.GPS_BABEL_FUNCTIONS_API_BASE_URL;
+
 const stroke = '#ff3300';
 const strokeWidth = 2;
 const fillOpacity = 0;
@@ -198,13 +200,45 @@ const updateTracks = async (event, tracks) => {
   }, Promise.resolve([]));
 }
 
+const getGeoJson = async (gpxFile) => {
+  const outtype = 'geojson';
+  const count = 100;
+
+  const params = [
+    `infile=${gpxFile}`,
+    `outtype=${outtype}`,
+    `count=${count}`,
+    'intype=gpx',
+  ];
+  const query = params.join('&');
+  const url = `${gpsbabelBaseUrl}gpsbabel?${query}`;
+  let res;
+  try {
+    res = await axios({
+      method: 'get',
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    return null;
+  }
+  if (res.status !== 200) {
+    return null;
+  }
+  return res.data;
+};
+
 const parseTracks = async (tracks) => {
   const features = [];
   const coords = [];
-  tracks.reduce((acc, track, index) => {
+  await tracks.reduce(async (lastPromise, track, index) => {
+    const accum = await lastPromise;
     const {
       id, geoJson: json, minCoords, maxCoords, color, name,
       distance, totalElevationGain, totalElevationLoss,
+      gpxFileSmallUrl,
     } = track;
     const featureItem = json.features.reduce((prev, current, index) => {
       current.index = index;
@@ -212,6 +246,18 @@ const parseTracks = async (tracks) => {
       const currentDistance = current ? (current.properties.distance) : 0;
       return (prevDistance > currentDistance) ? prev : current;
     });
+    const geoJsonObject = await getGeoJson(gpxFileSmallUrl);
+    if (geoJsonObject) {
+      const geoJsonFeature = geoJsonObject.features
+        .filter((feature) => feature.geometry.type === 'LineString')
+        .reduce((prev, current) => {
+          const prevDistance = prev ? geolib.getPathLength(prev.geometry.coordinates) : 0;
+          const currentDistance = current ? geolib.getPathLength(current.geometry.coordinates) : 0;
+          return (prevDistance > currentDistance) ? prev : current;
+      });
+      featureItem.geometry = geoJsonFeature.geometry;
+    }
+
     featureItem.properties = {
       ...featureItem.properties,
       id,
@@ -229,8 +275,8 @@ const parseTracks = async (tracks) => {
     features.push(featureItem);
     coords.push(minCoords);
     coords.push(maxCoords);
-    return acc;
-  }, []);
+    return [...accum];
+  }, Promise.resolve([]));
   return {
     features,
     coords,

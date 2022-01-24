@@ -8,7 +8,8 @@ module.exports = async () => {
         tracks {
           id
           name
-          geoJson  
+          geoJson
+          gpxFileSmallUrl
           maxCoords {
             latitude
             longitude

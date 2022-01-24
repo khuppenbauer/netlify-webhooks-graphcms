@@ -118,7 +118,7 @@ const getUser = async (id) => {
 };
 
 const getTrack = async (id) => {
-  const query = await graphcmsQuery.getTrack();
+  const query = await graphcmsQuery.getTrackWithCollectionData();
   const queryVariables = {
     id,
   };

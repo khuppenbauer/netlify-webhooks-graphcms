@@ -2,10 +2,20 @@ const { gql } = require('graphql-request');
 
 module.exports = async () => {
   return gql`
-    query gettrack($id: ID!) {
+    query gettrackwithcollectiondata($id: ID!) {
       track(where: { id: $id }) {
         collection {
+          id
           name
+          geoJson
+          maxCoords {
+            latitude
+            longitude
+          }
+          minCoords {
+            latitude
+            longitude
+          }
           subCollection {
             name
             collectionType {
