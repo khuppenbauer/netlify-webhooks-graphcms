@@ -179,12 +179,21 @@ const updateTracks = async (event, tracks) => {
     const accum = await lastPromise;
     const { id } = trackItem;
     const track = await getTrack(id);
-    const { foreignKey } = track;
-    await Track.findByIdAndUpdate(foreignKey, track);
+    const { foreignKey, collection } = track;
+    const trackCollection = collection.map((collectionItem) => {
+      const { name, subCollection, collectionType } = collectionItem;
+      return {
+        name,
+        subCollection,
+        collectionType,
+      };
+    });
     const trackObject = {
       ...track,
+      trackCollection,
       _id: foreignKey,
     };
+    await Track.findByIdAndUpdate(foreignKey, trackObject);
     await messages.create(
       {
         ...event,

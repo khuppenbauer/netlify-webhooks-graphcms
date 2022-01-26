@@ -146,10 +146,17 @@ const updateTrack = async (event, data) => {
   } = track;
   let trackObject = track;
   if (collection.length > 0) {
-    delete track['collection'];
+    const trackCollection = collection.map((collectionItem) => {
+      const { name, subCollection, collectionType } = collectionItem;
+      return {
+        name,
+        subCollection,
+        collectionType,
+      };
+    });
     trackObject = {
       ...track,
-      trackCollection: collection,
+      trackCollection,
     };
     await collection.reduce(async (lastPromise, collectionItem) => {
       const accum = await lastPromise;
