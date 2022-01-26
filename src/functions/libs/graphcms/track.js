@@ -182,7 +182,7 @@ const updateTrack = async (event, data) => {
     {
       ...event,
       body: JSON.stringify({
-        track: foreignKey,
+        _id: foreignKey,
       }),
     },
     {
@@ -200,15 +200,16 @@ const updateTrack = async (event, data) => {
     foreignKey,
   };
   const featureObject = await Feature.findOneAndUpdate(featureFilter, feature);
+  const { _id } = featureObject;
   await messages.create(
     {
       ...event,
       body: JSON.stringify({
-        feature: featureObject._id
+        _id
       }),
     },
     {
-      foreignKey: featureObject._id,
+      foreignKey: _id,
       app: 'graphcms',
       event: 'update_gpx_track_feature',
     }

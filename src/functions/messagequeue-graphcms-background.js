@@ -27,10 +27,12 @@ const handler = async (event) => {
             ...metaData,
             url,
           };
-          const featureObject = await Feature.findByIdAndUpdate(_id, { meta } );
+          await Feature.findByIdAndUpdate(_id, { meta } );
           const messageObject = {
             ...event,
-            body: JSON.stringify(featureObject),
+            body: JSON.stringify({
+              _id,
+            }),
           };
           await messages.create(messageObject, { foreignKey: data.path_display, app: 'graphcms', event: 'update_image_image_feature' });
         }

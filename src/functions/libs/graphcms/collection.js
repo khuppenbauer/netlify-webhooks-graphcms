@@ -197,7 +197,9 @@ const updateTracks = async (event, tracks) => {
     await messages.create(
       {
         ...event,
-        body: JSON.stringify(trackObject),
+        body: JSON.stringify({
+          _id: foreignKey,
+        }),
       },
       {
         foreignKey,
