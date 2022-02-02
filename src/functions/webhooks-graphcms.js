@@ -4,12 +4,13 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'POST') {
     const body = JSON.parse(event.body);
     const { data } = body;
-    const { name, __typename: type, stage, id, publishedBy } = data;
+    const { name, __typename: type, stage, id, publishedBy, updatedBy } = data;
     const messageBody = {
       ...body,
       data: {
         id,
         publishedBy,
+        updatedBy,
       },
     };
     event.body = JSON.stringify(messageBody);
