@@ -174,6 +174,28 @@ const addGeoDataToCollection = async (id, features, coords) => {
   }
 };
 
+const removeTracks = async (event, tracks) => {
+  await tracks.reduce(async (lastPromise, trackItem) => {
+    const accum = await lastPromise;
+    const { foreignKey } = trackItem;
+    await Track.findByIdAndUpdate(foreignKey, { '$unset': { trackCollection: '' } });
+    await messages.create(
+      {
+        ...event,
+        body: JSON.stringify({
+          _id: foreignKey,
+        }),
+      },
+      {
+        foreignKey,
+        app: 'graphcms',
+        event: 'update_track',
+      }
+    );
+    return [...accum];
+  }, Promise.resolve([]));
+}
+
 const updateTracks = async (event, tracks) => {
   await tracks.reduce(async (lastPromise, trackItem) => {
     const accum = await lastPromise;
@@ -351,9 +373,24 @@ module.exports = async (event, data) => {
   }
 
   const collection = await getCollection(id);
-  const { tracks, subCollections, name, staticImage } = collection;
+  const { tracks, subCollections, name, staticImage, collectionType } = collection;
+  const { name: collectionTypeName } = collectionType;
+  const filter = {
+    trackCollection: { 
+      '$elemMatch': {
+        name,
+        collectionType: {
+          name: collectionTypeName
+        }
+      }
+    }
+  };
+  const existingTracks = await Track.find(filter);
+  const removeCollectionFromTracks = existingTracks.filter(a => !tracks.some(b => a.foreignKey === b.foreignKey));  
+  const addCollectionToTracks = tracks.filter(a => !existingTracks.some(b => a.foreignKey === b.foreignKey));  
+  await updateTracks(event, addCollectionToTracks);
+  await removeTracks(event, removeCollectionFromTracks);
   if (tracks.length > 0) {
-    await updateTracks(event, tracks);
     const { features, coords } = await parseTracks(tracks);
     const { minCoords, maxCoords } = await addGeoDataToCollection(id, features, coords);
     const { latitude: minLat, longitude: minLng } = minCoords;

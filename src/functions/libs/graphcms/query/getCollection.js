@@ -10,6 +10,7 @@ module.exports = async () => {
           name
           geoJson
           gpxFileSmallUrl
+          foreignKey
           maxCoords {
             latitude
             longitude
@@ -42,6 +43,9 @@ module.exports = async () => {
             name
             slug
           }
+        }
+        collectionType {
+          name
         }
       }
     }
