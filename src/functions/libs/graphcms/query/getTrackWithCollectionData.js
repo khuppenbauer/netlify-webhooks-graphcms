@@ -44,6 +44,7 @@ module.exports = async () => {
         foreignKey
         geoJson
         name
+        title
         overviewImageUrl
         previewImageUrl
         private

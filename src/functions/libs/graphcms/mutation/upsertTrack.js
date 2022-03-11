@@ -4,6 +4,8 @@ module.exports = async () => {
   return gql`
     mutation AddTrack(
       $name: String!, 
+      $title: String,
+      $slug: String,
       $date: DateTime, 
       $startTime: DateTime, 
       $endTime: DateTime,
@@ -39,6 +41,8 @@ module.exports = async () => {
         upsert: {
           create: {
             name: $name,
+            title: $title,
+            slug: $slug,
             date: $date,
             startTime: $startTime,
             endTime: $endTime,
@@ -69,6 +73,8 @@ module.exports = async () => {
           }
           update: {
             name: $name,
+            title: $title,
+            slug: $slug,
             date: $date,
             startTime: $startTime,
             endTime: $endTime,
@@ -100,6 +106,8 @@ module.exports = async () => {
         }
       ) {
         name
+        title
+        slug
         date
         startTime
         endTime
