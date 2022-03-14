@@ -61,6 +61,14 @@ module.exports = async () => {
         endTime
         description
         abstract
+        endCoords {
+          latitude
+          longitude
+        }
+        startCoords {
+          latitude
+          longitude
+        }
       }
     }
   `;

@@ -143,6 +143,30 @@ const updateTrack = async (event, data) => {
     name,
     foreignKey,
     collection,
+    title,
+    slug,
+    date,
+    startCity,
+    startState,
+    startCountry,
+    distance,
+    eleHigh,
+    eleLow,
+    startCoords,
+    endCoords,
+    totalElevationGain,
+    totalElevationLoss,
+    startElevation,
+    endElevation,
+    endCity,
+    endState,
+    endCountry,
+    previewImageUrl,
+    overviewImageUrl,
+    difficulty,
+    fitness,
+    experience,
+    private: privateTrack,
   } = track;
   let trackObject = track;
   if (collection.length > 0) {
@@ -193,7 +217,39 @@ const updateTrack = async (event, data) => {
   );
 
   const feature = {
-    name
+    name,
+    meta:{
+      title,
+      slug,
+      date,
+      startCity,
+      startState,
+      startCountry,
+      distance,
+      elevationHigh: eleHigh,
+      elevationLow: eleLow,
+      startLatLng: {
+        lat: startCoords.latitude,
+        lon: startCoords.longitude,
+      },
+      endLatLng: {
+        lat: endCoords.latitude,
+        lon: endCoords.longitude,
+      },
+      totalElevationGain,
+      totalElevationLoss,
+      startElevation,
+      endElevation,
+      endCity,
+      endState,
+      endCountry,
+      previewImageUrl,
+      overviewImageUrl,
+      difficulty,
+      experience,
+      fitness,
+      private: privateTrack,
+    },
   };
   const featureFilter = {
     type: 'track',
