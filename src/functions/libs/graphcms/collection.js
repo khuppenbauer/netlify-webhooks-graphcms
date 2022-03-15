@@ -269,7 +269,7 @@ const parseTracks = async (tracks) => {
   await tracks.reduce(async (lastPromise, track, index) => {
     const accum = await lastPromise;
     const {
-      id, geoJson: json, minCoords, maxCoords, color, name,
+      id, geoJson: json, minCoords, maxCoords, color, name, title, slug,
       distance, totalElevationGain, totalElevationLoss,
       gpxFileSmallUrl,
     } = track;
@@ -295,6 +295,8 @@ const parseTracks = async (tracks) => {
       ...featureItem.properties,
       id,
       name,
+      title,
+      slug,
       distance,
       totalElevationGain,
       totalElevationLoss,

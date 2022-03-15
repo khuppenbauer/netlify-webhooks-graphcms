@@ -8,6 +8,8 @@ module.exports = async () => {
         tracks {
           id
           name
+          title
+          slug
           geoJson
           gpxFileSmallUrl
           foreignKey
