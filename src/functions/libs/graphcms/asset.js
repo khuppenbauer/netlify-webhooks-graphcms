@@ -15,6 +15,7 @@ const url = process.env.GRAPHCMS_API_URL;
 const token = process.env.GRAPHCMS_API_TOKEN;
 const cdnUrl = process.env.GRAPHCMS_CDN_URL;
 const cdnToken = process.env.GRAPHCMS_CDN_TOKEN;
+const assetBaseUrl = process.env.GRAPHCMS_ASSET_BASE_URL
 const hasTrails = false;
 
 const graphcms = new GraphQLClient(
@@ -214,7 +215,7 @@ module.exports = async (event, data) => {
   if (assetUrl) {
     fileUrl = assetUrl;
   } else {
-    fileUrl = `https://media.graphcms.com/${handle}`;
+    fileUrl = `${assetBaseUrl}/${handle}`;
   }
   await File.findByIdAndUpdate(file, { url: fileUrl, status: 'deployed' });
   if (assetId) {
