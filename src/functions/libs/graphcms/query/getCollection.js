@@ -41,12 +41,12 @@ module.exports = async () => {
             latitude
             longitude
           }
-          collectionType {
+          collectionTypes {
             name
             slug
           }
         }
-        collectionType {
+        collectionTypes {
           name
         }
       }

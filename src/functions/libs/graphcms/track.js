@@ -171,11 +171,11 @@ const updateTrack = async (event, data) => {
   let trackObject = track;
   if (collection.length > 0) {
     const trackCollection = collection.map((collectionItem) => {
-      const { name, subCollection, collectionType } = collectionItem;
+      const { name, subCollection, collectionTypes } = collectionItem;
       return {
         name,
         subCollection,
-        collectionType,
+        collectionTypes,
       };
     });
     trackObject = {

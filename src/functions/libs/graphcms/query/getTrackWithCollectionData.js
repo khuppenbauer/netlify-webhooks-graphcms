@@ -18,11 +18,11 @@ module.exports = async () => {
           }
           subCollection {
             name
-            collectionType {
+            collectionTypes {
               name
             }
           }
-          collectionType {
+          collectionTypes {
             name
           }
           tracks {

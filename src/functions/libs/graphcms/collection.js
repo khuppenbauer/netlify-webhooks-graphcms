@@ -203,11 +203,11 @@ const updateTracks = async (event, tracks) => {
     const track = await getTrack(id);
     const { foreignKey, collection } = track;
     const trackCollection = collection.map((collectionItem) => {
-      const { name, subCollection, collectionType } = collectionItem;
+      const { name, subCollection, collectionTypes } = collectionItem;
       return {
         name,
         subCollection,
-        collectionType,
+        collectionTypes,
       };
     });
     const trackObject = {
@@ -323,7 +323,7 @@ const parseSubcollections = async (subCollections) => {
   const coords = [];
   subCollections.reduce((acc, subCollection) => {
     const {
-      name, minCoords, maxCoords, collectionType,
+      name, minCoords, maxCoords, collectionTypes,
     } = subCollection;
     const { latitude: minLat, longitude: minLng } = minCoords;
     const { latitude: maxLat, longitude: maxLng } = maxCoords;
@@ -331,7 +331,7 @@ const parseSubcollections = async (subCollections) => {
       type: 'Feature',
       properties: {
         name,
-        type: collectionType.slug,
+        type: collectionTypes.slug,
         color: stroke,
         stroke,
         'stroke-width': strokeWidth,
@@ -375,13 +375,13 @@ module.exports = async (event, data) => {
   }
 
   const collection = await getCollection(id);
-  const { tracks, subCollections, name, staticImage, collectionType } = collection;
-  const { name: collectionTypeName } = collectionType;
+  const { tracks, subCollections, name, staticImage, collectionTypes } = collection;
+  const { name: collectionTypeName } = collectionTypes;
   const filter = {
     trackCollection: { 
       '$elemMatch': {
         name,
-        collectionType: {
+        collectionTypes: {
           name: collectionTypeName
         }
       }

@@ -8,11 +8,11 @@ module.exports = async () => {
           name
           subCollection {
             name
-            collectionType {
+            collectionTypes {
               name
             }
           }
-          collectionType {
+          collectionTypes {
             name
           }
           tracks {
