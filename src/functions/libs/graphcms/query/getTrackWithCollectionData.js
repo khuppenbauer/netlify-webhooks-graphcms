@@ -32,7 +32,6 @@ module.exports = async () => {
         date
         difficulty
         distance
-        downloadGpx
         elevHigh
         elevLow
         endCity
@@ -42,7 +41,6 @@ module.exports = async () => {
         experience
         fitness
         foreignKey
-        geoJson
         name
         title
         overviewImageUrl
@@ -56,11 +54,6 @@ module.exports = async () => {
         subtitle
         totalElevationGain
         totalElevationLoss
-        startTime
-        id
-        endTime
-        description
-        abstract
         endCoords {
           latitude
           longitude

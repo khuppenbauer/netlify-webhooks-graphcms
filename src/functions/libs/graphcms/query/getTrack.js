@@ -19,38 +19,7 @@ module.exports = async () => {
             name
           }
         }
-        date
-        difficulty
-        distance
-        downloadGpx
-        elevHigh
-        elevLow
-        endCity
-        endCountry
-        endElevation
-        endState
-        experience
-        fitness
         foreignKey
-        geoJson
-        name
-        title
-        overviewImageUrl
-        previewImageUrl
-        private
-        slug
-        startCity
-        startCountry
-        startElevation
-        startState
-        subtitle
-        totalElevationGain
-        totalElevationLoss
-        startTime
-        id
-        endTime
-        description
-        abstract
       }
     }
   `;
